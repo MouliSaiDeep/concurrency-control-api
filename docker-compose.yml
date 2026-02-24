@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "${API_PORT:-8080}:${API_PORT:-8080}"
+    environment:
+      - SERVER_PORT=${API_PORT:-8080}
+      - SPRING_DATASOURCE_URL=${DATABASE_URL:-jdbc:postgresql://db:5432/inventory_db}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-user}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-password}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${API_PORT:-8080}/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-inventory_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      # This will run the seed script on startup
+      - ./seeds:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-inventory_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
