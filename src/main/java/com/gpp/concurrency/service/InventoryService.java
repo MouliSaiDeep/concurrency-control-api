@@ -88,7 +88,7 @@ public class InventoryService {
                             .productId(product.getId())
                             .quantityOrdered(request.getQuantity())
                             .stockRemaining(product.getStock())
-                            .newVersion(product.getVersion() + 1)
+                            .newVersion(product.getVersion())
                             .build();
                 });
             } catch (ObjectOptimisticLockingFailureException e) {
